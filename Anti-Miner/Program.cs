@@ -128,6 +128,26 @@ namespace Anti_Miner
             return tasklist_out;
         }
 
+        static string Miner_Path(string PID)
+        {
+            string run_path = null;
+            var regexItem = new Regex("^[0-9]*$");
+
+            if (regexItem.IsMatch(PID)) { }
+            else { return ""; }
+
+            using (var searcher = new ManagementObjectSearcher("SELECT ExecutablePath FROM Win32_Process WHERE ProcessId = " + PID))
+            {
+                var matchEnum = searcher.Get().GetEnumerator();
+                if (matchEnum.MoveNext())
+                {
+                    run_path = matchEnum.Current["ExecutablePath"]?.ToString();
+                }
+            }
+
+            return run_path;
+        }
+
         static string Miner_AGR(string PID) {
             string run_agr = null;
             var regexItem = new Regex("^[0-9]*$");
@@ -145,18 +165,36 @@ namespace Anti_Miner
             return run_agr;
         }
 
-        static void KillMiner(int pids_int, string[] PIDS)
+        static void KillMiner(int pids_int, string[] PIDS, string[] path)
         {
             for (int c = 0; c != pids_int; c++)
             {
                 Process p = Process.GetProcessById(Convert.ToInt32(PIDS[c]));
                 p.Kill();
             }
+            Thread.Sleep(1500);
+
+            for (int c = 0; c != pids_int; c++)
+            {
+                File.Delete(path[c]);
+            }
+        }
+
+
+        // Template to download list of ports/agrs from web. Split ports or ags ","
+        static string[] PortFromUrl()
+        {
+            System.Net.WebClient client = new System.Net.WebClient();
+            string rez = client.DownloadString("link");
+            string[] ports = rez.Split(',');
+
+            return ports;
         }
 
         static void FindUnSafeAgr()
         {
-            string[] PIDS = new string[200];
+            string[] PIDS = new string[1000];
+            string[] path = new string[1000];
             int pids_int = 0;
 
             string[] line = Regex.Split(TaskList(), "\r\n");
@@ -171,7 +209,9 @@ namespace Anti_Miner
                 for (int a = 0; a != agrs.Length; a++)
                 {
                     try { 
-                        if (pid_agr.Contains(agrs[a])) {
+                        if (pid_agr.Contains(agrs[a]))
+                        {
+                            path[pids_int] = Miner_Path(agr[1]);
                             PIDS[pids_int] = agr[1];
                             pids_int++;
                             break;
@@ -180,12 +220,13 @@ namespace Anti_Miner
                 }
             }
 
-            KillMiner(pids_int, PIDS);
+            KillMiner(pids_int, PIDS, path);
         }
 
         static void FindUnSafePort()
         {
-            string[] PIDS = new string[200];
+            string[] PIDS = new string[1000];
+            string[] path = new string[1000];
             int pids_int = 0;
 
             string[] line = Regex.Split(NetStat(), "\r\n");
@@ -200,12 +241,13 @@ namespace Anti_Miner
                     if (port[3].Contains(ports[a]))
                     {
                         PIDS[pids_int] = port[5];
+                        path[pids_int] = Miner_Path(port[5]);
                         pids_int++;
                     }
                 }
             }
 
-            KillMiner(pids_int, PIDS);
+            KillMiner(pids_int, PIDS, path);
         }
 
         static void Main(string[] args)
