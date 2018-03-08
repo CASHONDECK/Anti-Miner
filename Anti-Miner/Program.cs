@@ -167,17 +167,19 @@ namespace Anti_Miner
 
         static void KillMiner(int pids_int, string[] PIDS, string[] path)
         {
-            for (int c = 0; c != pids_int; c++)
-            {
-                Process p = Process.GetProcessById(Convert.ToInt32(PIDS[c]));
-                p.Kill();
-            }
-            Thread.Sleep(1500);
+			try {
+				for (int c = 0; c != pids_int; c++)
+				{
+					Process p = Process.GetProcessById(Convert.ToInt32(PIDS[c]));
+					p.Kill();
+				}
+				Thread.Sleep(1500);
 
-            for (int c = 0; c != pids_int; c++)
-            {
-                File.Delete(path[c]);
-            }
+				for (int c = 0; c != pids_int; c++)
+				{
+					File.Delete(path[c]);
+				}
+			} catch {}
         }
 
 
