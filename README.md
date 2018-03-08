@@ -5,7 +5,8 @@ Anti-miner software. Kill miners works on some TCP ports and use param in cmd li
 ![GIF Demo](https://i.imgur.com/5VoOWY8.gif)
 
 # Features
-- Kill miners process every 20 sec
+- Kill process and delete file
+- Search miners every 20 sec
 - Protected process
 - Silent
 - No CPU load
