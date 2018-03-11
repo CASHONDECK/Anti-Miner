@@ -11,3 +11,12 @@ Anti-miner software. Kill miners works on some TCP ports, use param in cmd line 
 - Silent
 - No CPU load
 - Open source
+
+# How use?
+Tou use last version:
+- Register in (VirusTotal)[https://virustotal.com/]
+- Paste API key from Settings to Program.cs (api - variable)
+- Build
+
+To use v4:
+Just download)
