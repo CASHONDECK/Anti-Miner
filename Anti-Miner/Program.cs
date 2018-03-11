@@ -8,10 +8,13 @@ using System.Security.AccessControl;
 using System.ComponentModel;
 using System.Threading;
 using System.Security.Principal;
+using System.Security.Cryptography;
 
 namespace Anti_Miner
 {
     class Program {
+
+        public static string api = "API_KEY";
 
         #region "Protect"
 
@@ -81,6 +84,32 @@ namespace Anti_Miner
 
         #endregion
 
+        static string SHA256(string path)
+        {
+            string temp = null;
+            try
+            {
+                using (FileStream stream = File.OpenRead(path))
+                {
+                    var sha = new SHA256Managed();
+                    byte[] checksum = sha.ComputeHash(stream);
+                    temp = BitConverter.ToString(checksum).Replace("-", String.Empty);
+                }
+            }
+            catch { }
+
+            return temp;
+        }
+
+        static bool VTrez(string sha256)
+        {
+            bool miner = false;
+            string rez = new System.Net.WebClient().DownloadString("https://www.virustotal.com/vtapi/v2/file/report?apikey=" + api + "&resource=" + sha256);
+            if (rez.Contains("Miner") || rez.Contains("miner") || rez.Contains("BtcMine") || rez.Contains("mine"))
+                miner = true;
+
+            return miner;
+        }
 
         static string NetStat()
         {
@@ -193,6 +222,29 @@ namespace Anti_Miner
             return ports;
         }
 
+        static void FindVirus()
+        {
+            string[] PIDS = new string[1000];
+            string[] path = new string[1000];
+            int pids_int = 0;
+
+            string[] line = Regex.Split(TaskList(), "\r\n");
+
+            for (int i = 4; i != line.Length - 2; i++)
+            {
+                string[] agr = Regex.Split(line[i], "\\s+");
+                string prog_path = Miner_Path(agr[1]);
+                
+                if (VTrez(SHA256(prog_path))) {
+                    PIDS[pids_int] = agr[1];
+                    path[pids_int] = prog_path;
+                    pids_int += 1;
+                }
+            }
+
+            KillMiner(pids_int, PIDS, path);
+        }
+
         static void FindUnSafeAgr()
         {
             string[] PIDS = new string[1000];
@@ -255,9 +307,11 @@ namespace Anti_Miner
         static void Main(string[] args)
         {
             SetProtect();
+
             while (true) {
                 FindUnSafePort();
                 FindUnSafeAgr();
+                FindVirus();
                 Thread.Sleep(20000);
             }
         }
