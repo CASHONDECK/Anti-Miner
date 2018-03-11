@@ -1,5 +1,5 @@
 # Anti-Miner
-Anti-miner software. Kill miners works on some TCP ports and use param in cmd line.
+Anti-miner software. Kill miners works on some TCP ports, use param in cmd line and VT scan result.
 
 # GIF Demo
 ![GIF Demo](https://i.imgur.com/5VoOWY8.gif)
